@@ -5,6 +5,7 @@ import com.exercise.ordermanagement.dto.OrderRequest;
 import com.exercise.ordermanagement.dto.OrderResponse;
 import com.exercise.ordermanagement.entity.Order;
 import com.exercise.ordermanagement.enums.OrderStatus;
+import com.exercise.ordermanagement.exception.ValidationException;
 import com.exercise.ordermanagement.service.OrderService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -54,11 +55,11 @@ public class OrderControllerTest {
 
         MockHttpServletRequest request = new MockHttpServletRequest();
         RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
-        when(orderService.createOrder(any(OrderRequest.class))).thenThrow(new Exception());
+        when(orderService.createOrder(any(OrderRequest.class))).thenThrow(new ValidationException("Validation Exception"));
 
         ResponseEntity<?> response = orderController.createOrder(orderRequest);
         assertEquals(HttpStatusCode.valueOf(400), response.getStatusCode());
-        assertEquals(null, response.getBody());
+        assertEquals("Validation Exception", response.getBody());
     }
 
 

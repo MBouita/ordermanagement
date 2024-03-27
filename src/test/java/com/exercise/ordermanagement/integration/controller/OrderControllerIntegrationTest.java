@@ -41,6 +41,38 @@ public class OrderControllerIntegrationTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertTrue(response.getBody().contains("\"id\":"));
         assertTrue(response.getBody().contains("\"distance\":10"));
-        assertTrue(response.getBody().contains("\"status\":\"UNASSIGNED\""));    }
+        assertTrue(response.getBody().contains("\"status\":\"UNASSIGNED\""));
+    }
 
+    @Test
+    public void orderCreationWillFailIfIncorrectTypeForFieldIsProvided() {
+        String validRequestJson = "{\n    \"origin\": 1,\n    \"destination\": [3.48, 12.57]\n}";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Content-Type", "application/json");
+
+        ResponseEntity<String> response = restTemplate.postForEntity(
+                "http://localhost:" + port + "/orders",
+                new HttpEntity<>(validRequestJson, headers),
+                String.class
+        );
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    public void orderCreationWillFailIfIncorrectAmountOfCoordinatesAreSubmitted() {
+        String validRequestJson = "{\n    \"origin\": [\"3.48\", \"12.57\"],\n    \"destination\": [\"3.48\",\"3.48\", \"12.57\"]\n}";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Content-Type", "application/json");
+
+        ResponseEntity<String> response = restTemplate.postForEntity(
+                "http://localhost:" + port + "/orders",
+                new HttpEntity<>(validRequestJson, headers),
+                String.class
+        );
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
 }

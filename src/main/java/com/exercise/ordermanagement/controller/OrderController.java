@@ -1,8 +1,10 @@
 package com.exercise.ordermanagement.controller;
 
+import com.exercise.ordermanagement.dto.ErrorResponse;
 import com.exercise.ordermanagement.dto.OrderRequest;
 import com.exercise.ordermanagement.dto.OrderResponse;
 import com.exercise.ordermanagement.entity.Order;
+import com.exercise.ordermanagement.exception.ValidationException;
 import com.exercise.ordermanagement.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,8 +24,9 @@ public class OrderController {
             Order newOrder = orderService.createOrder(orderRequest);
             OrderResponse orderResponse = new OrderResponse(newOrder);
             return ResponseEntity.ok(orderResponse);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (IllegalArgumentException | ValidationException e) {
+            ErrorResponse errorResponse = new ErrorResponse(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
         }
     }
 
