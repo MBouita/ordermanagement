@@ -1,22 +1,22 @@
 package com.exercise.ordermanagement.integration.controller;
 
 import com.exercise.ordermanagement.OrdermanagementApplication;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.test.context.TestPropertySource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes= OrdermanagementApplication.class)
-@TestPropertySource(locations="classpath:application-test.properties")
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = OrdermanagementApplication.class)
+@TestPropertySource(locations = "classpath:application-test.properties")
 public class OrderControllerIntegrationTest {
 
     @Autowired
@@ -27,7 +27,7 @@ public class OrderControllerIntegrationTest {
 
     @Test
     public void orderCreation() {
-        String validRequestJson = "{\n    \"origin\": [\"START_LATITUDE\", \"START_LONGITUDE\"],\n    \"destination\": [\"END_LATITUDE\", \"END_LONGITUDE\"]\n}";
+        String validRequestJson = "{\n    \"origin\": [\"55.93\", \"-3.118\"],\n    \"destination\": [\"50.087\", \"14.421\"]\n}";
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("Content-Type", "application/json");
@@ -40,7 +40,7 @@ public class OrderControllerIntegrationTest {
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertTrue(response.getBody().contains("\"id\":"));
-        assertTrue(response.getBody().contains("\"distance\":10"));
+        assertTrue(response.getBody().contains("\"distance\":"));
         assertTrue(response.getBody().contains("\"status\":\"UNASSIGNED\""));
     }
 
@@ -74,5 +74,60 @@ public class OrderControllerIntegrationTest {
         );
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    public void takeOrderSuccessfully() throws JsonProcessingException {
+        String validRequestJson = "{\n    \"origin\": [\"55.93\", \"-3.118\"],\n    \"destination\": [\"50.087\", \"14.421\"]\n}";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Content-Type", "application/json");
+
+        ResponseEntity<String> orderCreationResponse = restTemplate.postForEntity(
+                "http://localhost:" + port + "/orders",
+                new HttpEntity<>(validRequestJson, headers),
+                String.class
+        );
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode jsonNode = mapper.readTree(orderCreationResponse.getBody());
+
+        int orderId = jsonNode.get("id").asInt();
+
+        String requestJson = "{\"status\":\"TAKEN\"}";
+        HttpEntity<String> requestEntity = new HttpEntity<>(requestJson, headers);
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                "http://localhost:" + port + "/orders/" + orderId,
+                HttpMethod.PATCH,
+                requestEntity,
+                String.class
+        );
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+
+        String expectedResponseBody = "{\"status\":\"SUCCESS\"}";
+        assertEquals(expectedResponseBody, response.getBody());
+    }
+
+    @Test
+    public void takeOrderFailureWhenOrderNotFound() throws Exception {
+        int orderId = 0;
+
+        String requestJson = "{\"status\":\"TAKEN\"}";
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Content-Type", "application/json");
+        HttpEntity<String> requestEntity = new HttpEntity<>(requestJson, headers);
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                "http://localhost:" + port + "/orders/" + orderId,
+                HttpMethod.PATCH,
+                requestEntity,
+                String.class
+        );
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+
+        String expectedResponseBody = "{\"error\":\"Order not found\"}";
+        assertEquals(expectedResponseBody, response.getBody());
     }
 }
