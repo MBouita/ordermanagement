@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  database:
+    image: mysql:latest
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: ordermanagement
+      MYSQL_USER: ordermanagement_user
+      MYSQL_PASSWORD: ordermanagement_password
+    ports:
+      - "3306:3306"
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - database
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ordermanagement?useSSL=false&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: ordermanagement_user
+      SPRING_DATASOURCE_PASSWORD: ordermanagement_password
