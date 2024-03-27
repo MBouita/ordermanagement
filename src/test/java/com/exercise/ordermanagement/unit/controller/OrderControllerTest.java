@@ -7,6 +7,7 @@ import com.exercise.ordermanagement.entity.Order;
 import com.exercise.ordermanagement.enums.OrderStatus;
 import com.exercise.ordermanagement.exception.ValidationException;
 import com.exercise.ordermanagement.service.OrderService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -59,7 +60,7 @@ public class OrderControllerTest {
 
         ResponseEntity<?> response = orderController.createOrder(orderRequest);
         assertEquals(HttpStatusCode.valueOf(400), response.getStatusCode());
-        assertEquals("Validation Exception", response.getBody());
+        assertEquals("{\"error\":\"Validation Exception\"}", new ObjectMapper().writeValueAsString(response.getBody()));
     }
 
 

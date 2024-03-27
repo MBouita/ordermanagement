@@ -1,22 +1,15 @@
 package com.exercise.ordermanagement.unit.service.validation;
 
 import com.exercise.ordermanagement.dto.OrderRequest;
-import com.exercise.ordermanagement.entity.Order;
-import com.exercise.ordermanagement.enums.OrderStatus;
 import com.exercise.ordermanagement.exception.ValidationException;
-import com.exercise.ordermanagement.repository.OrderRepository;
-import com.exercise.ordermanagement.service.DistanceCalculator;
-import com.exercise.ordermanagement.service.OrderService;
 import com.exercise.ordermanagement.service.validation.OrderRequestValidator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class OrderRequestValidatorTest {

@@ -5,7 +5,7 @@ import com.exercise.ordermanagement.entity.Order;
 import com.exercise.ordermanagement.enums.OrderStatus;
 import com.exercise.ordermanagement.exception.ValidationException;
 import com.exercise.ordermanagement.repository.OrderRepository;
-import com.exercise.ordermanagement.service.DistanceCalculator;
+import com.exercise.ordermanagement.service.IDistanceCalculator;
 import com.exercise.ordermanagement.service.OrderService;
 import com.exercise.ordermanagement.service.validation.OrderRequestValidator;
 import org.junit.jupiter.api.Test;
@@ -26,7 +26,7 @@ public class OrderServiceTest {
     private OrderRequestValidator validator;
 
     @Mock
-    private DistanceCalculator distanceCalculator;
+    private IDistanceCalculator distanceCalculator;
     @InjectMocks
     private OrderService orderService;
 

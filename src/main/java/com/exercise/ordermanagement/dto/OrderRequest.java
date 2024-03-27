@@ -5,9 +5,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-@EqualsAndHashCode(callSuper = true)
 @Data
-public class OrderRequest extends Request {
+public class OrderRequest {
     @JsonDeserialize(using = ArrayOfStringDeserializer.class)
     private String[] origin;
     @JsonDeserialize(using = ArrayOfStringDeserializer.class)
