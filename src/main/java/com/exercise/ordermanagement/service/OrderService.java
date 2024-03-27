@@ -11,9 +11,12 @@ import com.exercise.ordermanagement.service.validation.OrderStatusRequestValidat
 import com.google.maps.errors.ApiException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.List;
 
 @Service
 public class OrderService {
@@ -38,13 +41,23 @@ public class OrderService {
     @Transactional
     public void takeOrder(Integer orderId, OrderStatusRequest request) throws ValidationException {
         orderStatusValidator.validate(request);
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new ValidationException("Order not found"));
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new ValidationException("Order not found"));
 
         if (order.getStatus() == OrderStatus.TAKEN) {
             throw new ValidationException("Order has already been taken");
         }
         order.setStatus(OrderStatus.TAKEN);
         orderRepository.save(order);
+    }
+
+    public List<Order> getOrders(Integer page, Integer limit) throws ValidationException {
+        if (page < 1 || limit < 1) {
+            throw new ValidationException("Invalid page or limit");
+        }
+        PageRequest pageable = PageRequest.of(page - 1, limit);
+
+        Page<Order> orderPage = orderRepository.findAll(pageable);
+
+        return orderPage.getContent();
     }
 }

@@ -11,6 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 public class OrderController {
@@ -36,8 +38,22 @@ public class OrderController {
             UpdateOrderResponse response = new UpdateOrderResponse("SUCCESS");
             return ResponseEntity.ok(response);
         } catch (ValidationException e) {
-            ErrorResponse errorResponse = new ErrorResponse("Order not found");
+            ErrorResponse errorResponse = new ErrorResponse(e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        }
+    }
+
+    @GetMapping("/orders")
+    public ResponseEntity<?> getOrders(@RequestParam(name = "page") Integer page,
+                                       @RequestParam(name = "limit") Integer limit) {
+        try {
+            List<Order> orders = orderService.getOrders(page, limit);
+            if (orders.isEmpty()) {
+                return ResponseEntity.ok().body(new ArrayList<>());
+            }
+            return ResponseEntity.ok().body(orders);
+        } catch (ValidationException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(e.getMessage()));
         }
     }
 }

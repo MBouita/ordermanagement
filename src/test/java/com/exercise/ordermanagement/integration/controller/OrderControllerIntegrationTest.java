@@ -130,4 +130,56 @@ public class OrderControllerIntegrationTest {
         String expectedResponseBody = "{\"error\":\"Order not found\"}";
         assertEquals(expectedResponseBody, response.getBody());
     }
+
+    @Test
+    public void getOrdersSuccessfully() {
+        String validRequestJson = "{\n    \"origin\": [\"55.93\", \"-3.118\"],\n    \"destination\": [\"50.087\", \"14.421\"]\n}";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Content-Type", "application/json");
+
+        restTemplate.postForEntity(
+                "http://localhost:" + port + "/orders",
+                new HttpEntity<>(validRequestJson, headers),
+                String.class
+        );
+
+
+        int page = 1;
+        int limit = 10;
+
+        ResponseEntity<String> response = restTemplate.getForEntity(
+                "http://localhost:" + port + "/orders?page=" + page + "&limit=" + limit,
+                String.class
+        );
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody().contains("\"id\":"));
+        assertTrue(response.getBody().contains("\"distance\":"));
+        assertTrue(response.getBody().contains("\"status\":\"UNASSIGNED\""));
+    }
+
+    @Test
+    public void getOrdersWillReturnBadRequestIfInvalidPageOrLimit() {
+        int page = 0;
+        int limit = 10;
+
+        ResponseEntity<String> response = restTemplate.getForEntity(
+                "http://localhost:" + port + "/orders?page=" + page + "&limit=" + limit,
+                String.class
+        );
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    public void getOrdersWillReturnEmptyListIfNoResults() {
+        int page = 1;
+        int limit = 10;
+        ResponseEntity<String> response = restTemplate.getForEntity(
+                "http://localhost:" + port + "/orders?page=" + page + "&limit=" + limit,
+                String.class
+        );
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
 }

@@ -20,6 +20,10 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -89,4 +93,56 @@ public class OrderControllerTest {
         assertEquals(HttpStatusCode.valueOf(400), response.getStatusCode());
         assertEquals("{\"error\":\"Order not found\"}", new ObjectMapper().writeValueAsString(response.getBody()));
     }
+
+    @Test
+    public void getOrdersSuccessfully() throws Exception {
+        int page = 1;
+        int limit = 10;
+
+        List<Order> orders = new ArrayList<>();
+        orders.add(addNewOrder(1, 1000));
+        orders.add(addNewOrder(2, 2000));
+
+        when(orderService.getOrders(page, limit)).thenReturn(orders);
+
+        ResponseEntity<?> response = orderController.getOrders(page, limit);
+
+        assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
+        assertEquals(orders, response.getBody());
+    }
+
+    @Test
+    public void getOrdersWillReturnBadRequestIfInvalidPageOrLimit() throws Exception {
+        int page = 0;
+        int limit = 10;
+
+        when(orderService.getOrders(page, limit)).thenThrow(new ValidationException("Invalid page or limit"));
+
+        ResponseEntity<?> response = orderController.getOrders(page, limit);
+
+        assertEquals(HttpStatusCode.valueOf(400), response.getStatusCode());
+        assertEquals("{\"error\":\"Invalid page or limit\"}", new ObjectMapper().writeValueAsString(response.getBody()));
+    }
+
+    @Test
+    public void getOrdersWillReturnEmptyListIfNoResults() throws Exception {
+        int page = 1;
+        int limit = 10;
+
+        when(orderService.getOrders(page, limit)).thenReturn(Collections.emptyList());
+
+        ResponseEntity<?> response = orderController.getOrders(page, limit);
+
+        assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
+        assertEquals(Collections.emptyList(), response.getBody());
+    }
+
+    private Order addNewOrder(int id, int distance) {
+        Order order = new Order();
+        order.setId(id);
+        order.setDistance(distance);
+        order.setStatus(OrderStatus.UNASSIGNED);
+        return order;
+    }
+
 }
