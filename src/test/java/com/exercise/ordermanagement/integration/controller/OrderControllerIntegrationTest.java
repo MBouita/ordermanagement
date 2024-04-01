@@ -58,8 +58,25 @@ public class OrderControllerIntegrationTest {
         );
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("{\"error\":\"JSON parse error: Expected an array for field origin\"}",response.getBody());
     }
 
+    @Test
+    public void orderCreationWillFailIfNoBodyIsProvided() {
+        String validRequestJson = "";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Content-Type", "application/json");
+
+        ResponseEntity<String> response = restTemplate.postForEntity(
+                "http://localhost:" + port + "/orders",
+                new HttpEntity<>(validRequestJson, headers),
+                String.class
+        );
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertTrue(response.getBody().contains("Required request body is missing"));
+    }
     @Test
     public void orderCreationWillFailIfIncorrectAmountOfCoordinatesAreSubmitted() {
         String validRequestJson = "{\n    \"origin\": [\"3.48\", \"12.57\"],\n    \"destination\": [\"3.48\",\"3.48\", \"12.57\"]\n}";
@@ -74,6 +91,7 @@ public class OrderControllerIntegrationTest {
         );
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("{\"error\":\"Destination must have exactly 2 values. \"}", response.getBody());
     }
 
     @Test
@@ -125,11 +143,33 @@ public class OrderControllerIntegrationTest {
                 String.class
         );
 
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
 
         String expectedResponseBody = "{\"error\":\"Order not found\"}";
         assertEquals(expectedResponseBody, response.getBody());
     }
+
+    @Test
+    public void takeOrderFailureWhenIncorrectStatusProvided() throws Exception {
+        int orderId = 0;
+
+        String requestJson = "{\"status\":\"UNASSIGNED\"}";
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Content-Type", "application/json");
+        HttpEntity<String> requestEntity = new HttpEntity<>(requestJson, headers);
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                "http://localhost:" + port + "/orders/" + orderId,
+                HttpMethod.PATCH,
+                requestEntity,
+                String.class
+        );
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+
+        assertEquals("{\"error\":\"Only TAKEN status is supported. \"}", response.getBody());
+    }
+
 
     @Test
     public void getOrdersSuccessfully() {
@@ -170,6 +210,7 @@ public class OrderControllerIntegrationTest {
         );
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("{\"error\":\"page and limit must be strictly positive\"}", response.getBody());
     }
 
     @Test

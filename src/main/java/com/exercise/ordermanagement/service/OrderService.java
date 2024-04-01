@@ -4,10 +4,8 @@ import com.exercise.ordermanagement.dto.NewOrderRequest;
 import com.exercise.ordermanagement.dto.OrderStatusRequest;
 import com.exercise.ordermanagement.entity.Order;
 import com.exercise.ordermanagement.enums.OrderStatus;
-import com.exercise.ordermanagement.exception.ValidationException;
+import com.exercise.ordermanagement.exception.OrderManagementException;
 import com.exercise.ordermanagement.repository.OrderRepository;
-import com.exercise.ordermanagement.service.validation.NewOrderRequestValidator;
-import com.exercise.ordermanagement.service.validation.OrderStatusRequestValidator;
 import com.google.maps.errors.ApiException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,16 +20,11 @@ import java.util.List;
 public class OrderService {
     @Autowired
     private OrderRepository orderRepository;
-    @Autowired
-    private NewOrderRequestValidator newOrderValidator;
 
-    @Autowired
-    private OrderStatusRequestValidator orderStatusValidator;
     @Autowired
     private IDistanceCalculator distanceCalculator;
 
-    public Order createOrder(NewOrderRequest orderRequest) throws ValidationException, IOException, InterruptedException, ApiException {
-        newOrderValidator.validate(orderRequest);
+    public Order createOrder(NewOrderRequest orderRequest) throws IOException, InterruptedException, ApiException {
         Order newOrder = new Order();
         newOrder.setDistance(distanceCalculator.calculateDistance(orderRequest.getOrigin(), orderRequest.getDestination()));
         newOrder.setStatus(OrderStatus.UNASSIGNED);
@@ -39,21 +32,17 @@ public class OrderService {
     }
 
     @Transactional
-    public void takeOrder(Integer orderId, OrderStatusRequest request) throws ValidationException {
-        orderStatusValidator.validate(request);
-        Order order = orderRepository.findById(orderId).orElseThrow(() -> new ValidationException("Order not found"));
+    public void takeOrder(Integer orderId, OrderStatusRequest request) throws OrderManagementException {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new OrderManagementException("Order not found"));
 
         if (order.getStatus() == OrderStatus.TAKEN) {
-            throw new ValidationException("Order has already been taken");
+            throw new OrderManagementException("Order has already been taken");
         }
         order.setStatus(OrderStatus.TAKEN);
         orderRepository.save(order);
     }
 
-    public List<Order> getOrders(Integer page, Integer limit) throws ValidationException {
-        if (page < 1 || limit < 1) {
-            throw new ValidationException("Invalid page or limit");
-        }
+    public List<Order> getOrders(Integer page, Integer limit) {
         PageRequest pageable = PageRequest.of(page - 1, limit);
 
         Page<Order> orderPage = orderRepository.findAll(pageable);

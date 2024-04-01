@@ -1,13 +1,13 @@
 package com.exercise.ordermanagement.dto;
 
+import com.exercise.ordermanagement.config.validators.ValidOrderStatus;
 import com.exercise.ordermanagement.enums.OrderStatus;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
-@EqualsAndHashCode(callSuper = false)
 @Data
-public class OrderStatusRequest extends Request {
+public class OrderStatusRequest {
 
+    @ValidOrderStatus
     private OrderStatus status;
 
 }
