@@ -12,8 +12,6 @@ if [[ -n $GOOGLE_API_KEY ]]; then
     sed -i "s/^google.api.key=.*/google.api.key=$GOOGLE_API_KEY/g" ./src/main/resources/application.properties
 fi
 
-./gradlew build
-
 docker-compose build
 
 docker-compose up -d

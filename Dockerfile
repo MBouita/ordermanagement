@@ -1,3 +1,7 @@
+FROM gradle:latest AS BUILD
+WORKDIR /
+RUN gradle build
+
 FROM openjdk:17-alpine
 
 WORKDIR /
