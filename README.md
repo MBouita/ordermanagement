@@ -58,6 +58,7 @@ To run the project using Docker, follow these steps:
 The project follows the structure outlined below:
 
 - `config`
+   - `validators`
 - `controller`
 - `dto`
 - `entity`
@@ -65,14 +66,13 @@ The project follows the structure outlined below:
 - `exception`
 - `repository`
 - `service`
-  - `validation`
 - `tests`
   - `integration`
   - `unit`
 
 ## Testing
 
-The project includes both integration tests for the API and the Google Maps service, as well as unit tests for controllers and services.
+The project includes both integration tests for the API and the Google Maps service, as well as unit tests.
 
 ## Application Properties
 
